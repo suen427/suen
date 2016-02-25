@@ -1,6 +1,10 @@
-/*util*/
+/*MonthUtil*/
 /*返回当前时刻的下个月*/
-var MonthUtil = {
+
+function MonthUtil(settings){
+    this.init(settings);
+}
+MonthUtil.prototype = {
     init:function(settings){
         this.setMonth(settings.monthNum);
         this.monthLength = this.getDaysNumOfMonth(this.month);
@@ -28,10 +32,10 @@ var MonthUtil = {
             }
         }
         var tableA = [0,1,1,1,1,1,0,
-            0,1,1,1,1,1,0,
-            0,1,1,1,1,1,0,
-            0,1,1,1,1,1,0,
-            0,1,1,1,1,1,0],
+                0,1,1,1,1,1,0,
+                0,1,1,1,1,1,0,
+                0,1,1,1,1,1,0,
+                0,1,1,1,1,1,0],
             tableB = [0,1,1,1,1,1,1,
                 0,1,1,1,1,1,1,
                 0,1,1,1,1,1,1,
@@ -81,10 +85,9 @@ var settings = {
     // monthNum:6,// 获得下月日期对象，monthNum是月份数字0、1、2...11
     workDayNum:24 // 一个月中的工作天数
 }
-MonthUtil.init(settings);
-console.log(MonthUtil);
-
-/*util end*/
+var monthUtil = new MonthUtil(settings);
+console.log(monthUtil);
+/*MonthUtil end*/
 
 /*Person*/
 -function () {
@@ -93,14 +96,17 @@ console.log(MonthUtil);
     }
     Person.prototype = {
         init: function (settings, monthUtil) {
+            this.monthUtil = monthUtil;
             /*
             * table是Person的排班表array
             * 0表示休息，其余正整数代表不同岗位
             * */
-            this.table = new Array(monthUtil.monthLength);
+            this.table = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0].slice(0,monthUtil.monthLength);
             this.holiday = monthUtil.holiday;
             this.type = settings.type;
             this.name = settings.name;
+            this.stat={};
+            this.getStat();
         },
         setPre: function (preArr){ // 预先设置班表
             this.table = preArr.slice(0);
@@ -112,15 +118,22 @@ console.log(MonthUtil);
         setJobs: function (jobs) {
             this.jobs = jobs;
         },
-        setSchedule: function (monthUtil) { // 双休排班方法
+        setSchedule: function () { // 双休排班方法
             if (this.type == "A"){
-                for(var i = 0; i<monthUtil.monthLength; i++){
-                    this.table[i] = this.table[i]||monthUtil.tableA[i];
+                for(var i = 0; i<this.monthUtil.monthLength; i++){
+                    this.table[i] = this.table[i]||this.monthUtil.tableA[i];
                 }
             }else if(this.type == "B"){
-                for(var i = 0; i<monthUtil.monthLength; i++){
-                    this.table[i] = this.table[i]||monthUtil.tableB[i];
+                for(var i = 0; i<this.monthUtil.monthLength; i++){
+                    this.table[i] = this.table[i]||this.monthUtil.tableB[i];
                 }
+            }
+            this.getStat();
+        },
+        getStat: function () {
+            this.stat = {};
+            for(var i = 0; i < this.table.length; i++ ){
+                this.stat[this.jobs[this.table[i]]] = this.stat[this.jobs[this.table[i]]]+1||1;
             }
         }
     };
@@ -129,17 +142,17 @@ console.log(MonthUtil);
 /*Person end*/
 
 /*Team*/
-
 function Team(settings){
     this.init(settings);
 }
 Team.prototype = {
     init: function(settings){
+        this.monthUtil = settings.monthUtil;
         this.jobs = settings.jobs;
         var persons = settings.persons;
         this.menbers = [];
         for ( var i = 0; i < persons.length; i++){
-            this.menbers[i] = new Person(persons[i],MonthUtil);
+            this.menbers[i] = new Person(persons[i],this.monthUtil);
         }
         var menbersC = [];
         for(var i = 0; i < this.menbers.length; i++ ){
@@ -147,21 +160,24 @@ Team.prototype = {
             if(menber.type == "C"){
                 menbersC.push(menber);
             } else {
-                menber.setSchedule(MonthUtil);
+                menber.setSchedule(this.monthUtil);
             }
         }
         this.menbersC = menbersC;
     },
     setSchedule: function(){ // 设置type为C的员工的班表
+        for(var i = 0; i < this.menbers.length; i++){
+            this.menbers[i].setSchedule();
+        }
         var menbers = this.menbersC;
         var jobs = this.jobs;
-
+        //todo
     }
 }
 
 /*test*/
 var teamSetting = {
-    jobs:["岗1","岗2","岗3","岗4"],
+    jobs:["休","岗1","岗2","岗3","岗4"],
     persons:[
         {name:"戎超群",type:"C"},
         {name:"吴艳",type:"C"},
@@ -177,7 +193,8 @@ var teamSetting = {
         {name:"沈桂玲",type:"B"},
         {name:"宓雪玲",type:"B"},
         {name:"谢少华",type:"B"}
-    ]
+    ],
+    monthUtil:monthUtil
 }
 var team = new Team(teamSetting);
 team.setSchedule();
