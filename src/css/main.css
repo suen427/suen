@@ -88,7 +88,18 @@ textarea {
    Author's custom styles
    ========================================================================== */
 
-
+th,td {
+    width: 30px;
+    text-align: center;
+    padding: 3px;
+    border: 1px solid #000000;
+}
+th{
+    width: 70px;
+}
+tr:hover {
+    background: #b3d4fc;
+}
 
 
 

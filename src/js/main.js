@@ -106,7 +106,7 @@ console.log(monthUtil);
             this.type = settings.type;
             this.name = settings.name;
             this.stat={};
-            this.getStat();
+            this.computeStat();
         },
         setPre: function (preArr){ // 预先设置班表
             this.table = preArr.slice(0);
@@ -124,13 +124,13 @@ console.log(monthUtil);
                     this.table[i] = this.table[i]||this.monthUtil.tableA[i];
                 }
             }else if(this.type == "B"){
-                for(var i = 0; i<this.monthUtil.monthLength; i++){
+                for( i = 0; i<this.monthUtil.monthLength; i++){
                     this.table[i] = this.table[i]||this.monthUtil.tableB[i];
                 }
             }
-            this.getStat();
+            this.computeStat();
         },
-        getStat: function () {
+        computeStat: function () {
             this.stat = {};
             for(var i = 0; i < this.table.length; i++ ){
                 this.stat[this.jobs[this.table[i]]] = this.stat[this.jobs[this.table[i]]]+1||1;
@@ -170,8 +170,41 @@ Team.prototype = {
             this.menbers[i].setSchedule();
         }
         var menbers = this.menbersC;
+        var monthUtil = this.monthUtil;
         var jobs = this.jobs;
-        //todo
+        var joblen = jobs.length;
+        for( i = 0; i < monthUtil.monthLength; i++){
+            /*
+            随机排班
+            for(var j = 0; j < menbers.length; j++){
+                var person = menbers[j];
+                if(person.stat[jobs[0]]<=person.holiday){
+                    break;
+                }else {
+                    if(Math.floor(Math.random()*100)%7==0){
+                        break;
+                    }
+                    var random = Math.floor(Math.random()*10000)%(joblen-1)+1;
+                    person.table[i] = random;
+                    person.computeStat();
+                }
+            }*/
+        }
+    },
+    print: function () {
+        var html = '<table>';
+        var jobs = this.jobs;
+        for(var i = 0; i < this.menbers.length; i++ ){
+            var person = this.menbers[i];
+            var str = '<tr><th>'+person.name+'</th>';
+            for( var j = 0; j < person.table.length; j++ ){
+                str += '<td>'+jobs[person.table[j]]+'</td>'
+            }
+            str += '<td>'+person.stat['休']+'</td></tr>';
+            html += str;
+        }
+        html += '</table>';
+        document.write(html);
     }
 }
 
@@ -198,4 +231,5 @@ var teamSetting = {
 }
 var team = new Team(teamSetting);
 team.setSchedule();
+team.print();
 console.log(team);
