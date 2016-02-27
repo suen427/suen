@@ -99,9 +99,9 @@ console.log(monthUtil);
             this.monthUtil = monthUtil;
             /*
             * table是Person的排班表array
-            * 0表示休息，其余正整数代表不同岗位
+            * -1表示未排班,0表示休息，其余正整数代表不同岗位
             * */
-            this.table = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0].slice(0,monthUtil.monthLength);
+            this.table = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1].slice(0,monthUtil.monthLength);
             this.holiday = monthUtil.holiday;
             this.type = settings.type;
             this.name = settings.name;
@@ -121,11 +121,11 @@ console.log(monthUtil);
         setSchedule: function () { // 双休排班方法
             if (this.type == "A"){
                 for(var i = 0; i<this.monthUtil.monthLength; i++){
-                    this.table[i] = this.table[i]||this.monthUtil.tableA[i];
+                    this.table[i] = this.table[i]>-1?this.table[i]:this.monthUtil.tableA[i];
                 }
             }else if(this.type == "B"){
                 for( i = 0; i<this.monthUtil.monthLength; i++){
-                    this.table[i] = this.table[i]||this.monthUtil.tableB[i];
+                    this.table[i] = this.table[i]>-1?this.table[i]:this.monthUtil.tableB[i];
                 }
             }
             this.computeStat();
@@ -133,7 +133,11 @@ console.log(monthUtil);
         computeStat: function () {
             this.stat = {};
             for(var i = 0; i < this.table.length; i++ ){
-                this.stat[this.jobs[this.table[i]]] = this.stat[this.jobs[this.table[i]]]+1||1;
+                if(this.table[i]>-1){
+                    this.stat[this.jobs[this.table[i]]] = this.stat[this.jobs[this.table[i]]]+1||1;
+                }else{
+                    this.stat['rest'] = this.stat['rest']+1||1;
+                }
             }
         }
     };
@@ -173,22 +177,36 @@ Team.prototype = {
         var monthUtil = this.monthUtil;
         var jobs = this.jobs;
         var joblen = jobs.length;
+        /*设置job1*/
+        function setFirstJob(i){
+            this.times++;
+            if(this.times>10){alert("排班失败！");return;}
+            var random = Math.floor(Math.random()*1000)%menbers.length;
+            if(menbers[random].table[i]!=-1&&menbers[random].table[i]!=1){
+                setFirstJob(i);
+            }else{
+                menbers[random].table[i] = 1;
+            }
+        }
+        setFirstJob.times = 0;
         for( i = 0; i < monthUtil.monthLength; i++){
-            /*
-            随机排班
-            for(var j = 0; j < menbers.length; j++){
-                var person = menbers[j];
-                if(person.stat[jobs[0]]<=person.holiday){
-                    break;
-                }else {
-                    if(Math.floor(Math.random()*100)%7==0){
-                        break;
-                    }
-                    var random = Math.floor(Math.random()*10000)%(joblen-1)+1;
-                    person.table[i] = random;
-                    person.computeStat();
-                }
-            }*/
+            setFirstJob(i);
+        }
+        this.updateStat();//更新每个人的岗位信息
+        /*设置休息日*/
+        // todo
+        /*设置剩余岗位*/
+        // todo
+    },
+    updateStat:function(flag){
+        if(flag){
+            this.menbers.forEach(function(element, index, array){
+                element.computeStat();
+            })
+        }else{
+            this.menbersC.forEach(function(element, index, array){
+                element.computeStat();
+            })
         }
     },
     print: function () {
@@ -198,9 +216,9 @@ Team.prototype = {
             var person = this.menbers[i];
             var str = '<tr><th>'+person.name+'</th>';
             for( var j = 0; j < person.table.length; j++ ){
-                str += '<td>'+jobs[person.table[j]]+'</td>'
+                str += '<td>'+(jobs[person.table[j]]||'')+'</td>'
             }
-            str += '<td>'+person.stat['休']+'</td></tr>';
+            str += '<td>'+(person.stat['休']||0)+'</td></tr>';
             html += str;
         }
         html += '</table>';
