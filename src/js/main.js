@@ -1,6 +1,5 @@
 /*MonthUtil*/
 /*返回当前时刻的下个月*/
-
 function MonthUtil(settings){
     this.init(settings);
 }
@@ -80,15 +79,14 @@ MonthUtil.prototype = {
                 break;
         }
     }
-}
+};
 var settings = {
-    // monthNum:6,// 获得下月日期对象，monthNum是月份数字0、1、2...11
+    //monthNum:1,// 获得下月日期对象，monthNum是月份数字0、1、2...11
     workDayNum:24 // 一个月中的工作天数
-}
+};
 var monthUtil = new MonthUtil(settings);
 console.log(monthUtil);
 /*MonthUtil end*/
-
 /*Person*/
 -function () {
     function Person(settings,monthUtil){
@@ -144,7 +142,6 @@ console.log(monthUtil);
     window.Person = Person;
 }();
 /*Person end*/
-
 /*Team*/
 function Team(settings){
     this.init(settings);
@@ -178,25 +175,90 @@ Team.prototype = {
         var jobs = this.jobs;
         var joblen = jobs.length;
         /*设置job1*/
-        function setFirstJob(i){
-            this.times++;
-            if(this.times>10){alert("排班失败！");return;}
+        function setFirstJob(menbers,i){
+            if(setFirstJob.times == 0){
+                for( var j = 0; j < menbers.length; j++ ){
+                    if(menbers[j].table[i] == 1){
+                        setFirstJob.times = 0;
+                        return j;
+                    }
+                }
+            }
+            setFirstJob.times++;
+            if(setFirstJob.times>10){setFirstJob.times = 0;return -1;}
             var random = Math.floor(Math.random()*1000)%menbers.length;
             if(menbers[random].table[i]!=-1&&menbers[random].table[i]!=1){
-                setFirstJob(i);
+                setFirstJob(menbers,i);
             }else{
                 menbers[random].table[i] = 1;
+                setFirstJob.times = 0;
+                return random;
             }
         }
         setFirstJob.times = 0;
         for( i = 0; i < monthUtil.monthLength; i++){
-            setFirstJob(i);
+            if(setFirstJob(menbers,i) == -1){
+                console.log('arrange job1 fail!');
+            }
         }
         this.updateStat();//更新每个人的岗位信息
         /*设置休息日*/
-        // todo
+        /*难点 todo */
+        function setHoliday(menbers,i){
+            menbers.sort(function (a, b) {
+                return a.stat[jobs[0]] - b.stat[jobs[0]];
+            });
+            for(var j = 0; j < menbers.length; j++){
+                var person = menbers[j];
+                if(person.table[i] > -1) continue;
+                var p = (person.holiday - (person.stat[jobs[0]]||0))*1.5/ (person.table.length - i -1);
+                var random = Math.random() < p ? true:false;
+                if(random){
+                    person.table[i] = 0;
+                }
+            }
+        }
+        for( i = 0; i < monthUtil.monthLength; i++){
+            setHoliday(menbers,i);
+            this.updateStat();//更新每个人的岗位信息
+        }
+        /*设置剩余岗位 todo */
+        function setRestDay(menbers,i){
+            for(var j = 2; j < jobs.length; j++){
+                var flag = false;
+                var restPersons = [];
+                for(var k = 0; k < menbers.length; k++){
+                    if(menbers[k].table[i] == j){
+                        flag = true;
+                    }
+                    if(menbers[k].table[i] == -1){
+                        restPersons.push(menbers[k]);
+                    }
+                }
+                if(flag || restPersons.length == 0){break}
+                restPersons.sort(function(a,b){
+                    return a.stat[jobs[j]] - b.stat[jobs[j]];
+                });
+                var random = Math.floor(Math.random()*1000)%restPersons.length;
+                restPersons[random].table[i] = j;
+            }
+        }
+        for( i = 0; i < monthUtil.monthLength; i++){
+            setRestDay(menbers,i);
+            this.updateStat();//更新每个人的岗位信息
+        }
         /*设置剩余岗位*/
-        // todo
+        function setBlankDay(menbers){
+            for(var i = 0; i < menbers.length; i++){
+                var person = menbers[i];
+                for(var j = 0; j < monthUtil.monthLength; j++){
+                    if(person.table[j] == -1){
+                        person.table[j] = jobs.length-1;
+                    }
+                }
+            }
+        }
+        setBlankDay(menbers);
     },
     updateStat:function(flag){
         if(flag){
@@ -210,22 +272,35 @@ Team.prototype = {
         }
     },
     print: function () {
-        var html = '<table>';
         var jobs = this.jobs;
-        for(var i = 0; i < this.menbers.length; i++ ){
+        var html = '<table><tr><th>日 期</th>',
+            str = '<tr><th>星期</th>',
+            weeks = ['日','一','二','三','四','五','六'];
+
+        for(var i = 0; i < this.monthUtil.monthLength; i++){
+            html += '<th>'+ (i+1) +'日</th>';
+            str += '<th>周'+ weeks[(i + monthUtil.firstDay)%7] +'</th>';
+        }
+        for( i = 0; i < jobs.length; i++ ){
+            html += '<th>'+ jobs[i] +'</th>';
+        }
+        html += '</tr>'+ str+ '</tr>';
+        for(i = 0; i < this.menbers.length; i++ ){
             var person = this.menbers[i];
             var str = '<tr><th>'+person.name+'</th>';
             for( var j = 0; j < person.table.length; j++ ){
                 str += '<td>'+(jobs[person.table[j]]||'')+'</td>'
             }
-            str += '<td>'+(person.stat['休']||0)+'</td></tr>';
+            for( var j = 0; j < jobs.length; j++ ){
+                str += '<td>'+ (person.stat[jobs[j]]||0) +'</td>';
+            }
+            str += '</tr>';
             html += str;
         }
         html += '</table>';
         document.write(html);
     }
-}
-
+};
 /*test*/
 var teamSetting = {
     jobs:["休","岗1","岗2","岗3","岗4"],
@@ -246,7 +321,7 @@ var teamSetting = {
         {name:"谢少华",type:"B"}
     ],
     monthUtil:monthUtil
-}
+};
 var team = new Team(teamSetting);
 team.setSchedule();
 team.print();
