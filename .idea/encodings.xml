@@ -3,5 +3,9 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/css/main.css" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/js/main.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/js/vendor/Export2Excel.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/js/vendor/FileSave.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/js/vendor/jquery-1.12.1.min.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/js/vendor/modernizr-2.8.3.min.js" charset="UTF-8" />
   </component>
 </project>

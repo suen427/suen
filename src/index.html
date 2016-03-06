@@ -20,7 +20,8 @@
         <![endif]-->
 
         <!-- Add your site or application content here -->
-
+        <table id="table"></table>
+        <input type="submit" value="Export to Excel!" onclick="doit();">
 
 
 
@@ -28,7 +29,14 @@
 
 
         <script src="js/vendor/jquery-1.12.1.min.js"></script>
+        <script src="js/vendor/xlsx.full.min.js"></script>
+        <!--<script src="js/vendor/xlsx.core.min.js"></script>-->
+        <script src="js/vendor/FileSave.js"></script>
+        <script src="js/vendor/Export2Excel.js"></script>
         <script src="js/plugins.js"></script>
         <script src="js/main.js"></script>
+        <script>
+            function doit() { export_table_to_excel('table'); }
+        </script>
     </body>
 </html>

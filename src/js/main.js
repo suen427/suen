@@ -271,9 +271,9 @@ Team.prototype = {
             })
         }
     },
-    print: function () {
+    print: function (id) {
         var jobs = this.jobs;
-        var html = '<table><tr><th>日 期</th>',
+        var html = '<tr><th>日 期</th>',
             str = '<tr><th>星期</th>',
             weeks = ['日','一','二','三','四','五','六'];
 
@@ -297,8 +297,8 @@ Team.prototype = {
             str += '</tr>';
             html += str;
         }
-        html += '</table>';
-        document.write(html);
+        //html += '</table>';
+        document.getElementById('table').innerHTML = html;
     }
 };
 /*test*/
