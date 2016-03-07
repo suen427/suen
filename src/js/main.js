@@ -1,3 +1,19 @@
+// tab, data-tab-target直接使用css选择器
+function tabClickHandler(e){
+    var $this = $(e.target);
+    if($this.is('ul.tab > li:not(.active)')){
+        var thisTarget = $this.data('tabTarget');
+        var $currentActive = $this.siblings('li.active');
+        var currentTarget = $currentActive.data('tabTarget');
+        $currentActive.removeClass('active');
+        $(currentTarget).hide();
+        $this.addClass('active');
+        $(thisTarget).show();
+    }
+}
+// 需要在捕获阶段就执行,避免echarts在tab的click事件中执行时依然无法获取元素高宽
+document.body.addEventListener('click', tabClickHandler, true);
+
 /*MonthUtil*/
 /*返回当前时刻的下个月*/
 function MonthUtil(settings){
@@ -273,7 +289,7 @@ Team.prototype = {
     },
     print: function (id) {
         var jobs = this.jobs;
-        var html = '<tr><th>日 期</th>',
+        var html = '<thead><tr><th>日 期</th>',
             str = '<tr><th>星期</th>',
             weeks = ['日','一','二','三','四','五','六'];
 
@@ -282,12 +298,12 @@ Team.prototype = {
             str += '<th>周'+ weeks[(i + monthUtil.firstDay)%7] +'</th>';
         }
         for( i = 0; i < jobs.length; i++ ){
-            html += '<th>'+ jobs[i] +'</th>';
+            html += '<th rowspan="2">'+ jobs[i] +'</th>';
         }
-        html += '</tr>'+ str+ '</tr>';
+        html += '</tr>'+ str+ '</tr></thead>';
         for(i = 0; i < this.menbers.length; i++ ){
             var person = this.menbers[i];
-            var str = '<tr><th>'+person.name+'</th>';
+            str = '<tr><th>'+person.name+'</th>';
             for( var j = 0; j < person.table.length; j++ ){
                 str += '<td>'+(jobs[person.table[j]]||'')+'</td>'
             }

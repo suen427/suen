@@ -20,10 +20,19 @@
         <![endif]-->
 
         <!-- Add your site or application content here -->
-        <table id="table"></table>
-        <input type="submit" value="Export to Excel!" onclick="doit();">
+        <div class="tab-wrapper tab-style">
+            <ul class="tab">
+                <li class="active tab-head" data-tab-target="#tab1">排班<span class="active tab-line"></span></li>
+                <li class="tab-head" data-tab-target="#tab2">考勤<span class="tab-line"></span></li>
+            </ul>
+        </div>
+        <div id="tab1" class="content">
+            <button class="icon-btn r m5" onclick="doit();"><span class="icon-16-16 icon-download"></span>导出EXCEL</button>
+            <table id="table" class="table"></table>
+        </div>
+        <div id="tab2" class="content dn">
 
-
+        </div>
 
 
 

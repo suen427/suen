@@ -87,20 +87,190 @@ textarea {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
-
-th,td {
-    width: 30px;
+html {
+    font: 12px Tahoma,Helvetica,Arial,"微软雅黑","宋体";
+}
+body {
+    overflow-y: scroll;
+    color: #666;
+    background: #fff none repeat scroll 0 0;
+}
+li{
+    list-style: none;
+}
+/* 2. from quickLayout.css and clearfix */
+.clearfix:after {
+    content:".";
+    display:block;
+    height:0;
+    visibility:hidden;
+    clear:both;
+}
+.dn { display: none; }
+.l { float: left; }
+.r { float: right; }
+.mr5 { margin-right: 5px; }
+.mr10 { margin-right:10px; }
+.mr15 { margin-right: 15px; }
+.mr30 { margin-right: 30px; }
+.mt5{ margin-top: 5px;}
+.mb5{ margin-bottom: 5px;}
+.m5{margin:5px}
+.m10{margin:10px}
+.cl { clear: both; }
+.content{margin:20px 15px 40px;}
+/* 2. end */
+/* tab */
+.tab-wrapper {
+    padding: 5px 20px;
+    border-bottom: 2px solid #E0E0E0;
+}
+ul.tab {
+    display: inline-block;
+}
+ul.tab li {
+    float: left;
+    line-height: 30px;
+    font-size: 14px;
+    font-weight: normal;
+    margin: 5px 10px;
+    min-width: 60px;
     text-align: center;
-    padding: 3px;
-    border: 1px solid #000000;
+    cursor: pointer;
 }
-th{
-    width: 70px;
+ul.tab li.active, ul.tab li:hover {
+    font-weight: bold;
 }
-tr:hover {
-    background: #b3d4fc;
+ul.tab li.active, ul.tab li:hover {
+    border-bottom: 3px solid #DC4F52;
 }
-
+/* tab end */
+/*.table*/
+.table {
+    width: 100%;
+    text-align: center;
+    border: 1px solid #D7D7D7;
+}
+.table thead {
+    background: #F4F4F4 none repeat scroll 0% 0%;
+    color: #929292;
+    border-bottom: 2px solid #CFCFCF;
+}
+.table tr {
+    height: 30px;
+}
+.table th {
+    height: 33px;
+}
+.table tbody {
+    color: #868686;
+}
+.table td {
+    padding: 5px;
+    border: 1px solid #F7F4F4;
+}
+.table tbody tr:nth-child(2n),
+.customized-table tbody tr.even {
+    background-color: #f8f8f8;
+}
+.customized-table tbody tr.odd {
+    background: transparent #fff;
+}
+.customized-table tbody tr:hover {
+    background: transparent #fff;
+}
+.table tbody tr:hover,
+.customized-table tbody tr.even:hover,
+.customized-table tbody tr.odd:hover {
+    background-color: #f2e2df;
+}
+/*end .table*/
+/* 4. icon & btn */
+.icon-btn {
+    height: 20px;
+    line-height: 20px;
+    min-width: 50px;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+}
+.icon-btn:hover {
+    color: #1386FC;
+}
+.icon-16-16 {
+    display: inline-block;
+    width: 16px;
+    height: 20px;
+    vertical-align: middle;
+    margin: 0 5px;
+}
+.icon-download {
+    background: transparent url("../img/icon-download.png") no-repeat scroll 0 0;
+}
+.btn-base {
+    font-size: 14px;
+    min-width: 90px;
+    height: 30px;
+    border: none;
+    color: #fff;
+}
+.btn-base:hover {
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+}
+.btn-search, .btn-confirm {
+    background-color: #5BB75B;
+}
+.btn-cancel, .btn-reset {
+    background-color: #ccc;
+}
+.btn-2-chars {
+    text-indent: 1em;
+    letter-spacing: 1em;
+    padding: 0;
+}
+.btn-3-chars {
+    text-indent: 0.5em;
+    letter-spacing: 0.5em;
+    padding: 0 0.5em;
+}
+.btn-gt3-chars {
+    padding: 0 1em;
+}
+.button {
+    width: auto;
+    overflow: visible;
+    display: inline-block;
+    padding: 4px 12px;
+    _margin-left: 5px;
+    margin-bottom: 0;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.428571429;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    height: 28px;
+    border-radius: 3px;
+    color: #fff;
+}
+.button-cancel {
+    width: 189px;
+    background-color: #ccc;
+}
+.button-confirm {
+    width: 189px;
+    background-color: #00ae39;
+}
+.button-edit {
+    background-color: #1c94bc;
+}
+.button:hover {
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+}
+/* 4. end */
 
 
 
