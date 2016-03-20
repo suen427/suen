@@ -66,11 +66,11 @@ td,th {
 
 /* 2. from quickLayout.css and clearfix */
 .clearfix:after {
-	content:"."; 
-	display:block; 
-	height:0; 
-	visibility:hidden; 
-	clear:both; 
+	content:".";
+	display:block;
+	height:0;
+	visibility:hidden;
+	clear:both;
 }
 .dn { display: none; }
 .l { float: left; }
@@ -231,7 +231,7 @@ input {
 	cursor: pointer;
 }
 .pdf-dialog .ui-dialog-content button {
-	
+
 }
 .pdf-dialog .ui-dialog-content button + button {
 	margin-left: 8px;
@@ -925,3 +925,6 @@ ul.tab li.active, ul.tab li:hover {
     background: #fff;
 }
 /*switch end*/
+
+/**/
+

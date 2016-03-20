@@ -272,7 +272,10 @@ ul.tab li.active, ul.tab li:hover {
 }
 /* 4. end */
 
-
+.table .rest {
+    color:#666;
+    font-weight: bold;
+}
 
 
 

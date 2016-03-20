@@ -56,8 +56,8 @@ MonthUtil.prototype = {
                 0,1,1,1,1,1,1,
                 0,1,1,1,1,1,1,
                 0,1,1,1,1,1,1];
-        this.tableA = tableA.slice(this.firstDay-1,this.firstDay+this.monthLength-1);
-        this.tableB = tableB.slice(this.firstDay-1,this.firstDay+this.monthLength-1);
+        this.tableA = tableA.slice(this.firstDay,this.firstDay+this.monthLength);
+        this.tableB = tableB.slice(this.firstDay,this.firstDay+this.monthLength);
     },
     setMonth:function (monthNum){ // 获得下月日期对象，monthNum是月份数字0、1、2...11
         var date = new Date(),
@@ -153,6 +153,93 @@ console.log(monthUtil);
                     this.stat['rest'] = this.stat['rest']+1||1;
                 }
             }
+        },
+        setRest: function (monthUtil,i) {
+            /*
+            *
+            * return 0 表示不休息
+            *        1 表示休息一天
+            *        2 表示单日和当日的后一日休息
+            * */
+            var firstSatday = monthUtil.firstSatday,
+                firstSunday = monthUtil.firstSunday,
+                firstDay = monthUtil.firstDay,
+                firstMonday = (monthUtil.firstSunday+1)% 7,
+                type = i <= 1 ? 1 :(   i < this.table.length-2 ? 2 : 3   ),
+                p = (this.holiday - (this.stat[this.jobs[0]]||0))/ (this.table.length - i -1),
+                nearRestFlag = false, // 前后4天是否有休息
+                berforeDaytFlag = false,
+                nextDaytFlag = false,
+                berfore2DaytFlag = false,
+                next2DaytFlag = false;
+
+            var start = Math.max(i-4,0),
+                end = Math.min(this.table.length-1, i+4);
+            for ( var j = start; j < end; ++j ){
+                if ( j > i-2 && j < i+2){
+                    continue;
+                }
+                if ( this.table[j] === 0 ){
+                    nearRestFlag = true;
+                    break;
+                }
+            }
+            if (i > 0){
+                if (this.table[i-1] === 0){
+                    berforeDaytFlag  = true;
+                }
+            }
+            if (i < this.table.length - 1){
+                if (this.table[i+1] === 0){
+                    nextDaytFlag  = true;
+                }
+            }
+            if (berforeDaytFlag && i > 1 ){
+                if ( this.table[i-2] === 0 ){
+                    berfore2DaytFlag =true;
+                }
+            }if (nextDaytFlag && i < this.table.length - 2 ){
+                if ( this.table[i+2] === 0 ){
+                    next2DaytFlag =true;
+                }
+            }
+            if ( nearRestFlag || berfore2DaytFlag || next2DaytFlag ){
+                return 0;
+            }
+            if ( berforeDaytFlag && nextDaytFlag ){
+                return 0;
+            }
+
+            if( type === 2 ){
+                if ( !berforeDaytFlag ){
+                    if ( i%7 === firstSatday && (this.holiday - (this.stat[this.jobs[0]]||0)) >= 2  ){
+                        if(Math.random()*1.6 > 1){
+                            return 2;
+                        }
+                    }
+                }
+                if( i%7 == firstSatday || i%7 == firstSunday ){
+                    p = p*1.5;
+                } else if ( i == firstMonday ){
+                    p = 0;
+                }
+            } else if ( type === 1){
+                if( i == firstSatday || i == firstSunday ){
+                    p = p*1.5;
+                } else if ( i == firstMonday ){
+                    p = 0;
+                }
+            } else if ( type === 3 ){
+                if( i%7 == firstSatday || i%7 == firstSunday ){
+                    p = p*1.5;
+                } else if ( i == firstMonday ){
+                    p = 0;
+                }
+            }
+            if ( p > Math.random()){
+                return 1;
+            }
+            return 0;
         }
     };
     window.Person = Person;
@@ -224,13 +311,18 @@ Team.prototype = {
             menbers.sort(function (a, b) {
                 return a.stat[jobs[0]] - b.stat[jobs[0]];
             });
+            var firstSatday = monthUtil.firstSatday,
+                firstSunday = monthUtil.firstSunday,
+                firstDay = monthUtil.firstDay;
             for(var j = 0; j < menbers.length; j++){
                 var person = menbers[j];
                 if(person.table[i] > -1) continue;
-                var p = (person.holiday - (person.stat[jobs[0]]||0))*1.5/ (person.table.length - i -1);
-                var random = Math.random() < p ? true:false;
-                if(random){
+                var rest = person.setRest(monthUtil,i);
+                if (rest === 1){
+                    person.table[i] = 0
+                } else if ( rest === 2 ){
                     person.table[i] = 0;
+                    person.table[i+1] = 0;
                 }
             }
         }
@@ -305,7 +397,11 @@ Team.prototype = {
             var person = this.menbers[i];
             str = '<tr><th>'+person.name+'</th>';
             for( var j = 0; j < person.table.length; j++ ){
-                str += '<td>'+(jobs[person.table[j]]||'')+'</td>'
+                if( person.table[j]==0 ){
+                    str += '<td class="rest">'+(jobs[person.table[j]]||'')+'</td>'
+                } else {
+                    str += '<td>'+(jobs[person.table[j]]||'')+'</td>'
+                }
             }
             for( var j = 0; j < jobs.length; j++ ){
                 str += '<td>'+ (person.stat[jobs[j]]||0) +'</td>';
@@ -327,14 +423,14 @@ var teamSetting = {
         {name:"叶佳莹",type:"C"},
         {name:"张智",type:"C"},
         {name:"夏雨",type:"C"},
-        {name:"谢素梅",type:"A"},
-        {name:"邬凯",type:"A"},
-        {name:"向前",type:"A"},
-        {name:"司超",type:"A"},
-        {name:"谢素梅",type:"A"},
-        {name:"沈桂玲",type:"B"},
-        {name:"宓雪玲",type:"B"},
-        {name:"谢少华",type:"B"}
+        //{name:"谢素梅",type:"A"},
+        //{name:"邬凯",type:"A"},
+        //{name:"向前",type:"A"},
+        //{name:"司超",type:"A"},
+        //{name:"谢素梅",type:"A"},
+        //{name:"沈桂玲",type:"B"},
+        //{name:"宓雪玲",type:"B"},
+        //{name:"谢少华",type:"B"}
     ],
     monthUtil:monthUtil
 };
