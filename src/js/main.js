@@ -96,12 +96,12 @@ MonthUtil.prototype = {
         }
     }
 };
-var settings = {
+/*var settings = {
     //monthNum:1,// 获得下月日期对象，monthNum是月份数字0、1、2...11
     workDayNum:24 // 一个月中的工作天数
 };
 var monthUtil = new MonthUtil(settings);
-console.log(monthUtil);
+console.log(monthUtil);*/
 /*MonthUtil end*/
 /*Person*/
 -function () {
@@ -119,6 +119,9 @@ console.log(monthUtil);
             this.holiday = monthUtil.holiday;
             this.type = settings.type;
             this.name = settings.name;
+            if(settings.preArr){
+                this.setPre(settings.preArr);
+            }
             this.stat={};
             this.computeStat();
         },
@@ -161,20 +164,27 @@ console.log(monthUtil);
             *        1 表示休息一天
             *        2 表示单日和当日的后一日休息
             * */
-            var firstSatday = monthUtil.firstSatday,
-                firstSunday = monthUtil.firstSunday,
+            var firstSatday = monthUtil.firstSatday-1,
+                firstSunday = monthUtil.firstSunday-1,
                 firstDay = monthUtil.firstDay,
-                firstMonday = (monthUtil.firstSunday+1)% 7,
+                firstMonday = (firstSunday+1)% 7,
                 type = i <= 1 ? 1 :(   i < this.table.length-2 ? 2 : 3   ),
                 p = (this.holiday - (this.stat[this.jobs[0]]||0))/ (this.table.length - i -1),
                 nearRestFlag = false, // 前后4天是否有休息
                 berforeDaytFlag = false,
                 nextDaytFlag = false,
                 berfore2DaytFlag = false,
-                next2DaytFlag = false;
-
-            var start = Math.max(i-4,0),
-                end = Math.min(this.table.length-1, i+4);
+                next2DaytFlag = false,
+                longWorkFlag = true,
+                weekendCoef = 2.4,
+                satdayCoef = 3,
+                longWorkCoef = 0.9;
+            if ( this.holiday >= 7 ){
+                weekendCoef = 2.8;
+                satdayCoef = 4;
+            }
+            var start = Math.max(i-3,0),
+                end = Math.min(this.table.length-1, i+3);
             for ( var j = start; j < end; ++j ){
                 if ( j > i-2 && j < i+2){
                     continue;
@@ -198,48 +208,126 @@ console.log(monthUtil);
                 if ( this.table[i-2] === 0 ){
                     berfore2DaytFlag =true;
                 }
-            }if (nextDaytFlag && i < this.table.length - 2 ){
+            }
+            if (nextDaytFlag && i < this.table.length - 2 ){
                 if ( this.table[i+2] === 0 ){
                     next2DaytFlag =true;
                 }
             }
+            if ( i > 6 ){
+                for ( j = i - 6; j < i ; ++j ){
+                    if ( this.table[j] == 0 ){
+                        longWorkFlag = false;
+                        break;
+                    }
+                }
+            } else {
+                longWorkFlag = false;
+            }
+
             if ( nearRestFlag || berfore2DaytFlag || next2DaytFlag ){
                 return 0;
             }
             if ( berforeDaytFlag && nextDaytFlag ){
                 return 0;
             }
+            if ( i == 0) {
+                return 0;
+            }
 
-            if( type === 2 ){
-                if ( !berforeDaytFlag ){
-                    if ( i%7 === firstSatday && (this.holiday - (this.stat[this.jobs[0]]||0)) >= 2  ){
-                        if(Math.random()*1.6 > 1){
+            if ( longWorkFlag && (this.holiday - (this.stat[this.jobs[0]] || 0)) > 0 ) {
+                p = longWorkCoef;
+            }
+
+            if( type === 2 ) {
+                if (!berforeDaytFlag) {
+                    if (i % 7 === firstSatday && (this.holiday - (this.stat[this.jobs[0]] || 0)) >= 2 && this.table[i + 1] === -1) {
+                        if (Math.random() * satdayCoef > 1) {
                             return 2;
                         }
                     }
                 }
-                if( i%7 == firstSatday || i%7 == firstSunday ){
-                    p = p*1.5;
-                } else if ( i == firstMonday ){
-                    p = 0;
-                }
-            } else if ( type === 1){
-                if( i == firstSatday || i == firstSunday ){
-                    p = p*1.5;
-                } else if ( i == firstMonday ){
-                    p = 0;
-                }
-            } else if ( type === 3 ){
-                if( i%7 == firstSatday || i%7 == firstSunday ){
-                    p = p*1.5;
-                } else if ( i == firstMonday ){
-                    p = 0;
-                }
+            }
+            if( i%7 == firstSatday || i%7 == firstSunday ){
+                p = p*weekendCoef;
+            }
+            if ( i%7 == firstMonday ){
+                p = 0;
             }
             if ( p > Math.random()){
                 return 1;
             }
             return 0;
+        },
+        polishHoliday: function () {
+            this.callTime = this.callTime + 1 || 0;
+            if( this.callTime > 10 ) {
+                alert('请在试一次！');
+                return fales;;
+            }
+            var longest = this.longestWork();
+            if ( longest[0] > 7 ){
+                if (this.table[longest[1]+3] == -1 && this.table[longest[1]+2] !== 0 && this.table[longest[1]+4] !== 0){
+                    this.table[longest[1]+3] = 0;
+                } else if ( this.table[longest[1]+4] == -1  && this.table[longest[1]+3] !== 0 && this.table[longest[1]+5] !== 0 ){
+                    this.table[longest[1]+4] = 0;
+                }else {
+                    var sr = this.singleRest();
+                    if ( sr.length>0){
+                        this.table[ sr[ Math.floor( Math.random()*10 ) % sr.length ]+1 ] = 0;
+                    } else {
+                        for ( var k = 1; k < this.table.length-1; ++k){
+                            if ( this.table[k-1] !==0 && this.table[k+1] !==0 && this.table[k] === -1 ){
+                                this.table[k] = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                var sr = this.singleRest();
+                if ( sr.length>0 ){
+                    this.table[ sr[ Math.floor( Math.random()*10 ) % sr.length ]+1 ] = 0;
+                } else {
+                    for ( var k = 1; k < this.table.length-1; ++k){
+                        if ( this.table[k-1] !==0 && this.table[k+1] !==0 && this.table[k] === -1 ){
+                            this.table[k] = 0;
+                            break;
+                        }
+                    }
+                }
+            }
+            this.computeStat();
+            if ( this.holiday > (this.stat[this.jobs[0]] || 0) ) {
+                this.polishHoliday();
+            } else {
+                this.callTime = 0;
+            }
+        },
+        longestWork: function () {
+            var longest = 0,
+                longestPosition = 0,
+                current = 0;// 当前的连续工作日长度
+            for( var j = 0; j < this.table.length; ++j ){
+                if ( this.table[j] !== 0){
+                    current++;
+                }
+                else if ( current > longest ) {
+                    longest = current;
+                    longestPosition = j - current;
+                    current = 0;
+                }
+            }
+            return [longest,longestPosition];
+        },
+        singleRest: function () {
+            var sr = [];
+            for ( var j = 1; j < this.table.length -1; ++j ){
+                if ( this.table[j] === 0 && this.table[j-1] === -1 && this.table[j+1] === -1 ){
+                    sr.push(j);
+                }
+            }
+            return sr;
         }
     };
     window.Person = Person;
@@ -279,21 +367,27 @@ Team.prototype = {
         var joblen = jobs.length;
         /*设置job1*/
         function setFirstJob(menbers,i){
+            var job1Menbers = [];
             if(setFirstJob.times == 0){
                 for( var j = 0; j < menbers.length; j++ ){
                     if(menbers[j].table[i] == 1){
                         setFirstJob.times = 0;
                         return j;
                     }
+                    if( (menbers[j].stat[jobs[1]]||0) < (monthUtil.monthLength/ menbers.length ) ){
+                        job1Menbers.push(menbers[j]);
+                    }
                 }
             }
+            if(job1Menbers.length == 0 ) { setFirstJob.times = 0;return -1 }
             setFirstJob.times++;
             if(setFirstJob.times>10){setFirstJob.times = 0;return -1;}
-            var random = Math.floor(Math.random()*1000)%menbers.length;
-            if(menbers[random].table[i]!=-1&&menbers[random].table[i]!=1){
-                setFirstJob(menbers,i);
+            var random = Math.floor(Math.random()*1000)%job1Menbers.length;
+            if(job1Menbers[random].table[i]!=-1&&job1Menbers[random].table[i]!=1){
+                setFirstJob(job1Menbers,i);
             }else{
-                menbers[random].table[i] = 1;
+                job1Menbers[random].table[i] = 1;
+                job1Menbers[random].computeStat();
                 setFirstJob.times = 0;
                 return random;
             }
@@ -306,7 +400,6 @@ Team.prototype = {
         }
         this.updateStat();//更新每个人的岗位信息
         /*设置休息日*/
-        /*难点 todo */
         function setHoliday(menbers,i){
             menbers.sort(function (a, b) {
                 return a.stat[jobs[0]] - b.stat[jobs[0]];
@@ -330,7 +423,15 @@ Team.prototype = {
             setHoliday(menbers,i);
             this.updateStat();//更新每个人的岗位信息
         }
-        /*设置剩余岗位 todo */
+        /*补齐剩余休息日*/
+        for( j = 0; j < menbers.length; j++){
+            var person = menbers[j];
+            if ( person.holiday > (person.stat[jobs[0]] || 0) ){
+                person.polishHoliday();
+            }
+        }
+
+        /*设置剩余岗位*/
         function setRestDay(menbers,i){
             for(var j = 2; j < jobs.length; j++){
                 var flag = false;
@@ -413,28 +514,41 @@ Team.prototype = {
         document.getElementById('table').innerHTML = html;
     }
 };
+
 /*test*/
+/*var settings = {
+    monthNum:4,// 获得下月日期对象，monthNum是月份数字0、1、2...11
+    workDayNum:24 // 一个月中的工作天数
+};
+var monthUtil = new MonthUtil(settings);
 var teamSetting = {
     jobs:["休","岗1","岗2","岗3","岗4"],
     persons:[
-        {name:"戎超群",type:"C"},
+        {name:"戎超群",type:"C",
+            preArr:[0,-1,-1,-1,-1,4,-1,
+                -1,-1,-1,-1,-1,-1,
+                -1,-1,-1,-1,-1,-1,
+                -1,-1,-1,-1,-1,-1,
+                -1,-1,-1,-1,-1,-1
+            ]
+        },
         {name:"吴艳",type:"C"},
         {name:"吴丹丹",type:"C"},
         {name:"叶佳莹",type:"C"},
         {name:"张智",type:"C"},
         {name:"夏雨",type:"C"},
-        //{name:"谢素梅",type:"A"},
-        //{name:"邬凯",type:"A"},
-        //{name:"向前",type:"A"},
-        //{name:"司超",type:"A"},
-        //{name:"谢素梅",type:"A"},
-        //{name:"沈桂玲",type:"B"},
-        //{name:"宓雪玲",type:"B"},
-        //{name:"谢少华",type:"B"}
+        {name:"谢素梅",type:"A"},
+        {name:"邬凯",type:"A"},
+        {name:"向前",type:"A"},
+        {name:"司超",type:"A"},
+        {name:"谢素梅",type:"A"},
+        {name:"沈桂玲",type:"B"},
+        {name:"宓雪玲",type:"B"},
+        {name:"谢少华",type:"B"}
     ],
     monthUtil:monthUtil
 };
 var team = new Team(teamSetting);
 team.setSchedule();
-team.print();
-console.log(team);
+team.print();*/
+
