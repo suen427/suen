@@ -510,13 +510,40 @@ Team.prototype = {
             str += '</tr>';
             html += str;
         }
-        //html += '</table>';
-        document.getElementById('table').innerHTML = html;
+        document.getElementById(id).innerHTML = html;
+    },
+    printBlankTable: function (id) {
+        var jobs = this.jobs;
+        var html = '<thead><tr><th>日 期</th>',
+            str = '<tr><th>星期</th>',
+            weeks = ['日','一','二','三','四','五','六'];
+
+        for(var i = 0; i < this.monthUtil.monthLength; i++){
+            html += '<th>'+ (i+1) +'日</th>';
+            str += '<th>周'+ weeks[(i + monthUtil.firstDay)%7] +'</th>';
+        }
+        for( i = 0; i < jobs.length; i++ ){
+            html += '<th rowspan="2">'+ jobs[i] +'</th>';
+        }
+        html += '</tr>'+ str+ '</tr></thead>';
+        for(i = 0; i < this.menbers.length; i++ ){
+            var person = this.menbers[i];
+            str = '<tr><th>'+person.name+'</th>';
+            for( var j = 0; j < person.table.length; j++ ){
+                str += '<td></td>'
+            }
+            for( var j = 0; j < jobs.length; j++ ){
+                str += '<td></td>';
+            }
+            str += '</tr>';
+            html += str;
+        }
+        document.getElementById(id).innerHTML = html;
     }
 };
 
 /*test*/
-/*var settings = {
+var settings = {
     monthNum:4,// 获得下月日期对象，monthNum是月份数字0、1、2...11
     workDayNum:24 // 一个月中的工作天数
 };
@@ -550,5 +577,6 @@ var teamSetting = {
 };
 var team = new Team(teamSetting);
 team.setSchedule();
-team.print();*/
+team.print('table');
+team.printBlankTable('table');
 
