@@ -276,7 +276,28 @@ ul.tab li.active, ul.tab li:hover {
     color:#666;
     font-weight: bold;
 }
-
+/* 与设置下拉 */
+td{
+    position: relative;
+}
+.select-down{
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background: #f2e2df;
+    z-index: 9999;
+}
+.select-down li {
+    padding: 5px;
+    margin: 0;
+}
+.changed {
+    color: #DC4F52;
+    font-weight: bold;
+}
 
 
 

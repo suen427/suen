@@ -358,6 +358,7 @@ Team.prototype = {
         this.menbersC = menbersC;
     },
     setSchedule: function(){ // 设置type为C的员工的班表
+        this.getPreSetting('table');
         for(var i = 0; i < this.menbers.length; i++){
             this.menbers[i].setSchedule();
         }
@@ -496,7 +497,7 @@ Team.prototype = {
         html += '</tr>'+ str+ '</tr></thead>';
         for(i = 0; i < this.menbers.length; i++ ){
             var person = this.menbers[i];
-            str = '<tr><th>'+person.name+'</th>';
+            str = '<tr class="'+ person.type +'"><th>'+person.name+'</th>';
             for( var j = 0; j < person.table.length; j++ ){
                 if( person.table[j]==0 ){
                     str += '<td class="rest">'+(jobs[person.table[j]]||'')+'</td>'
@@ -517,7 +518,6 @@ Team.prototype = {
         var html = '<thead><tr><th>日 期</th>',
             str = '<tr><th>星期</th>',
             weeks = ['日','一','二','三','四','五','六'];
-
         for(var i = 0; i < this.monthUtil.monthLength; i++){
             html += '<th>'+ (i+1) +'日</th>';
             str += '<th>周'+ weeks[(i + monthUtil.firstDay)%7] +'</th>';
@@ -528,7 +528,7 @@ Team.prototype = {
         html += '</tr>'+ str+ '</tr></thead>';
         for(i = 0; i < this.menbers.length; i++ ){
             var person = this.menbers[i];
-            str = '<tr><th>'+person.name+'</th>';
+            str = '<tr class="'+ person.type +'"><th>'+person.name+'</th>';
             for( var j = 0; j < person.table.length; j++ ){
                 str += '<td></td>'
             }
@@ -538,7 +538,61 @@ Team.prototype = {
             str += '</tr>';
             html += str;
         }
-        document.getElementById(id).innerHTML = html;
+        var table =  document.getElementById(id);
+        table.innerHTML = html;
+        document.addEventListener('click', function (e) {
+            var target = e.target;
+            if(target.nodeName.toLowerCase() === 'li' ){
+                var p = target.parentNode;
+                if(p.className.indexOf('select-down')>-1 ){
+                    var pp = p.parentNode;
+                    pp.innerHTML = target.innerHTML;
+                    pp.className = 'changed';
+                }
+            }
+
+            var selectDown = document.getElementsByClassName('select-down');
+            for( var i = 0; i < selectDown.length; ++i ){
+                selectDown[i].parentNode.removeChild(selectDown[i]);
+            }
+
+            if(target.nodeName.toLowerCase() === 'td'){
+                if( target.parentNode.className.indexOf('C')>-1 ) {
+                    var html = '<ul class="select-down">';
+                    for ( var k = 0; k < jobs.length; ++k ){
+                        html += '<li>'+jobs[k] + '</li>';
+                    }
+                    html += '</ul>';
+                } else {
+                    var html = '<ul class="select-down"><li>休</li><li>岗1</li></ul>';
+                }
+                target.innerHTML = target.innerHTML+html;
+            }
+        });
+    },
+    getPreSetting: function (id) {
+        var jobs = this.jobs;
+        var menbers = this.menbers;
+        var table = document.getElementById(id);
+        var trs = table.getElementsByTagName('tr');
+        if( trs.length < 2  ){return}
+        var names = [];
+        var name = '';
+        for( var i = 2; i < trs.length; ++i ){
+            name = trs[i].getElementsByTagName('th')[0].innerHTML;
+            names.push(name);
+        }
+        var person = null;
+        var tds = null;
+        for ( i = 0; i < menbers.length; ++i ){
+            person = menbers[i];
+            tds = trs[names.indexOf(person.name)+2].getElementsByTagName('td');
+            for ( var j = 0; j < person.table.length; ++j ){
+                if( jobs.indexOf(tds[j+1].innerHTML)>-1){
+                    person.table[j] = jobs.indexOf( tds[j+1].innerHTML );
+                }
+            }
+        }
     }
 };
 
@@ -576,7 +630,7 @@ var teamSetting = {
     monthUtil:monthUtil
 };
 var team = new Team(teamSetting);
+
+//team.printBlankTable('table');
 team.setSchedule();
 team.print('table');
-team.printBlankTable('table');
-
